@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import dayjs from "dayjs";
 import dotenv from "dotenv";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 import connection from "../database/db.js";
@@ -22,12 +23,14 @@ async function signUp(req, res) {
     }
 
     try {
+        const hashPassword = bcrypt.hashSync(password, 10);
+
         const insertUser = await connection.query(
             `
         INSERT INTO
             users (name, email, password)
         VALUES ($1, $2, $3)`,
-            [name, email, password]
+            [name, email, hashPassword]
         );
 
         return res.sendStatus(201);
@@ -55,20 +58,30 @@ async function signIn(req, res) {
             `SELECT * FROM users WHERE email=$1`,
             [email]
         );
-        const token = jwt.sign(
-            { user: getUser.rows[0].id },
-            process.env.SECRET_JWT
+
+        const acceptedPassword = bcrypt.compareSync(
+            password,
+            getUser.rows[0].password
         );
 
-        const insertSession = await connection.query(
-            `
-            INSERT INTO
-                sessions (token, user_id)
-                VALUES ($1, $2)`,
-            [token, getUser.rows[0].id]
-        );
+        if (acceptedPassword) {
+            const token = jwt.sign(
+                { user: getUser.rows[0].id },
+                process.env.SECRET_JWT
+            );
 
-        res.status(200).send({ token });
+            const insertSession = await connection.query(
+                `
+                INSERT INTO
+                    sessions (token, user_id)
+                    VALUES ($1, $2)`,
+                [token, getUser.rows[0].id]
+            );
+            res.status(200).send({ token });
+            return;
+        }
+
+        res.sendStatus(409);
     } catch (error) {
         console.log(
             chalk.redBright(
