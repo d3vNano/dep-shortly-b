@@ -36,4 +36,52 @@ async function insertShorten(req, res) {
     }
 }
 
-export { insertShorten };
+async function openShorten(req, res) {
+    const { shortUrl } = req.params;
+
+    try {
+        const getUrl = await connection.query(
+            `SELECT * FROM shortens WHERE short_url = $1`,
+            [shortUrl]
+        );
+
+        const shortId = getUrl.rows[0].id;
+
+        const getHits = await connection.query(
+            `
+            SELECT * FROM access WHERE short_id = $1`,
+            [shortId]
+        );
+
+        if (getHits.rowCount > 0) {
+            const incrementAccess = await connection.query(
+                `
+                UPDATE access
+                SET access = access + 1
+                WHERE short_id = $1`,
+                [shortId]
+            );
+            res.redirect(getUrl.rows[0].url);
+            return;
+        }
+
+        const insertAccess = await connection.query(
+            `
+                INSERT INTO access (short_id, access)
+                VALUES ($1, $2)`,
+            [shortId, 1]
+        );
+
+        res.redirect(getUrl.rows[0].url);
+    } catch (error) {
+        if (error.constraint === "users_email_key") {
+            res.sendStatus(409);
+            return;
+        }
+
+        chalk.redBright(dayjs().format("YYYY-MM-DD HH:mm:ss"), error.message);
+        return res.sendStatus(500);
+    }
+}
+
+export { insertShorten, openShorten };
