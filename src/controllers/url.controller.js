@@ -125,8 +125,13 @@ async function deleteShorten(req, res) {
         );
         res.sendStatus(204);
     } catch (error) {
-        console.log(error);
-        return res.sendStatus(500); // server error
+        if (error.constraint === "users_email_key") {
+            res.sendStatus(409);
+            return;
+        }
+
+        chalk.redBright(dayjs().format("YYYY-MM-DD HH:mm:ss"), error.message);
+        return res.sendStatus(500);
     }
 }
 
