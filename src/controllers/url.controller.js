@@ -36,6 +36,20 @@ async function insertShorten(req, res) {
     }
 }
 
+async function getShorten(req, res) {
+    const { id } = req.params;
+
+    const getShorten = await connection.query(
+        `
+        SELECT * FROM shortens WHERE id = $1`,
+        [id]
+    );
+
+    delete getShorten.rows[0].user_id;
+
+    res.send(getShorten.rows);
+}
+
 async function openShorten(req, res) {
     const { shortUrl } = req.params;
 
@@ -84,4 +98,4 @@ async function openShorten(req, res) {
     }
 }
 
-export { insertShorten, openShorten };
+export { insertShorten, getShorten, openShorten };
