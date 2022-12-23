@@ -70,6 +70,16 @@ async function signIn(req, res) {
                 process.env.SECRET_JWT
             );
 
+            const isLogged = await connection.query(
+                `SELECT * FROM sessions WHERE user_id = $1`,
+                [getUser.rows[0].id]
+            );
+
+            if (isLogged.rowCount > 0) {
+                res.status(200).send(isLogged.rows[0].token);
+                return;
+            }
+
             const insertSession = await connection.query(
                 `
                 INSERT INTO
