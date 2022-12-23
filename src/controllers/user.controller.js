@@ -30,9 +30,29 @@ async function getUser(req, res) {
             shortenedUrls: userUrls,
         });
     } catch (error) {
-        console.log(error);
-        return res.sendStatus(500); // server error
+        console.log(
+            chalk.redBright(
+                dayjs().format("YYYY-MM-DD HH:mm:ss"),
+                error.message
+            )
+        );
+        res.sendStatus(500);
     }
 }
 
-export { getUser };
+async function getRanking(req, res) {
+    try {
+        const buildRanking = await connection.query(``);
+        res.send(buildRanking.rows);
+    } catch (error) {
+        console.log(
+            chalk.redBright(
+                dayjs().format("YYYY-MM-DD HH:mm:ss"),
+                error.message
+            )
+        );
+        res.sendStatus(500);
+    }
+}
+
+export { getUser, getRanking };
