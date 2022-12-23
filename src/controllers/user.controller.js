@@ -12,7 +12,7 @@ async function getUser(req, res) {
 
     try {
         const visitResult = await connection.query(
-            `SELECT SUM(access.access) FROM access JOIN shortens ON access.short_id = shortens.id WHERE shortens.user_id = $1`,
+            `SELECT SUM(hits.access) FROM hits JOIN shortens ON hits.short_id = shortens.id WHERE shortens.user_id = $1`,
             [id]
         );
         const [access] = visitResult.rows;

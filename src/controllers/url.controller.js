@@ -63,14 +63,14 @@ async function openShorten(req, res) {
 
         const getHits = await connection.query(
             `
-            SELECT * FROM access WHERE short_id = $1`,
+            SELECT * FROM hits WHERE short_id = $1`,
             [shortId]
         );
 
         if (getHits.rowCount > 0) {
             const incrementAccess = await connection.query(
                 `
-                UPDATE access
+                UPDATE hits
                 SET access = access + 1
                 WHERE short_id = $1`,
                 [shortId]
@@ -81,7 +81,7 @@ async function openShorten(req, res) {
 
         const insertAccess = await connection.query(
             `
-                INSERT INTO access (short_id, access)
+                INSERT INTO hits (short_id, access)
                 VALUES ($1, $2)`,
             [shortId, 1]
         );
