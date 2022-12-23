@@ -59,26 +59,31 @@ async function signIn(req, res) {
             [email]
         );
 
+        if (getUser.rowCount === 0) {
+            res.send(409);
+            return;
+        }
+
         const acceptedPassword = bcrypt.compareSync(
             password,
             getUser.rows[0].password
         );
 
         if (acceptedPassword) {
-            const token = jwt.sign(
-                { user: getUser.rows[0].id },
-                process.env.SECRET_JWT
-            );
-
             const isLogged = await connection.query(
                 `SELECT * FROM sessions WHERE user_id = $1`,
                 [getUser.rows[0].id]
             );
 
             if (isLogged.rowCount > 0) {
-                res.status(200).send(isLogged.rows[0].token);
+                res.status(200).send({ token: isLogged.rows[0].token });
                 return;
             }
+
+            const token = jwt.sign(
+                { user: getUser.rows[0].id },
+                process.env.SECRET_JWT
+            );
 
             const insertSession = await connection.query(
                 `
@@ -91,7 +96,7 @@ async function signIn(req, res) {
             return;
         }
 
-        res.sendStatus(409);
+        res.sendStatus(400);
     } catch (error) {
         console.log(
             chalk.redBright(
