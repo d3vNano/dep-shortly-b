@@ -8,7 +8,7 @@ const configDB = {
     connectionString: process.env.DATABASE_URL,
 };
 
-if (process.send.MODE === "PROD") {
+if (process.env.MODE === "PROD") {
     configDB.ssl = {
         rejectUnauthorized: false,
     };
