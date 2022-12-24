@@ -60,7 +60,7 @@ async function signIn(req, res) {
         );
 
         if (getUser.rowCount === 0) {
-            res.send(409);
+            res.sendStatus(409);
             return;
         }
 
